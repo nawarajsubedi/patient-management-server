@@ -35,6 +35,10 @@ yarn-error.log*
 # production
 /build
 
+# temp file
+/temp_uploads
+/logs
+
 # misc
 .DS_Store
 .env.local
