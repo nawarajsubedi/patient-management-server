@@ -8,16 +8,18 @@ import {
   NurseDto,
   ObservationDTO,
   PatientDTO,
+  PatientDataWrapper,
   PractitionerDto,
 } from "./interface";
 
-export const getAllData = (data: CSVDataRow[]) => {
+export const getAllData = (data: CSVDataRow[]): PatientDataWrapper => {
+  let patientResult: PatientDataWrapper;
   let patientDTO: PatientDTO;
   let practitionerDTO: PractitionerDto;
   let hospitalDTO: HospitalDTO;
   let medicationDTO: MedicationDTO;
   let nurseDTO: NurseDto;
-  let ObservationDTO: ObservationDTO;
+  let observationDTO: ObservationDTO;
 
   let currentSSN = "";
   let currentNurseId = "";
@@ -72,7 +74,7 @@ export const getAllData = (data: CSVDataRow[]) => {
       hospitalMap.set(hospital_id, hospitalDTO);
     }
 
-    ObservationDTO = getObservationData({
+    observationDTO = getObservationData({
       row,
       patient_ssn: currentSSN,
       hospital_id: currentHospitalId,
@@ -80,8 +82,18 @@ export const getAllData = (data: CSVDataRow[]) => {
       nurse_id: currentNurseId,
       practitioner_id: currentPractitionerId,
     });
-    observationMap.set(row.observation_id, ObservationDTO);
+    observationMap.set(row.observation_id, observationDTO);
   }
+
+  patientResult = {
+    ObservationData: [...observationMap.values()],
+    hospitalData: [...hospitalMap.values()],
+    medicationData: [...medicationMap.values()],
+    nurseData: [...nurseMap.values()],
+    patientData: [...patientMap.values()],
+    practitionerData: [...practitionerMap.values()],
+  };
+  return patientResult;
   debugger;
 };
 

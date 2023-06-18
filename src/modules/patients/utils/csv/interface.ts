@@ -122,6 +122,15 @@ export class PractitionerDto {
   practitioner_checkout?: Date;
 }
 
+export interface PatientDataWrapper {
+  patientData: PatientDTO[];
+  hospitalData: HospitalDTO[];
+  medicationData: MedicationDTO[];
+  nurseData: NurseDto[];
+  ObservationData: ObservationDTO[];
+  practitionerData: PractitionerDto[];
+}
+
 // observation_id String  @id
 // observation_date DateTime?
 // observation_time DateTime?

@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Sex {
+  M
+  F
+  O
+}
+
+model Patient {
+  patient_ssn                  String        @id @db.VarChar(50)
+  patient_firstname            String        @db.VarChar(255)
+  patient_lastname             String        @db.VarChar(255)
+  patient_country              String        @db.VarChar(255)
+  patient_address1             String        @db.VarChar(255)
+  patient_address2             String        @db.VarChar(255)
+  patient_number1              String        @db.VarChar(20)
+  patient_number2              String?       @db.VarChar(20)
+  patient_sex                  Sex
+  patient_dob                  DateTime?
+  patient_dod                  DateTime?
+  patient_email                String        @unique @db.VarChar(255)
+  patient_height               Float
+  patient_weight               Float
+  patient_bloodtype            String        @db.VarChar(3)
+  patient_education_background String?       @db.VarChar(255)
+  patient_occupation           String        @db.VarChar(255)
+  createdAt                    DateTime      @default(now())
+  observation                  Observation[]
+}
+
+model Practitioner {
+  practitioner_id        String        @id @db.VarChar(50)
+  practitioner_firstname String?       @db.VarChar(255)
+  practitioner_lastname  String?       @db.VarChar(255)
+  practitioner_address1  String?       @db.VarChar(255)
+  practitioner_address2  String?       @db.VarChar(255)
+  practitioner_number1   String?       @db.VarChar(20)
+  practitioner_number2   String?       @db.VarChar(20)
+  practitioner_checkin   DateTime?
+  practitioner_checkout  DateTime?
+  observation            Observation[]
+}
+
+model Hospital {
+  hospital_id      String        @id @db.VarChar(50)
+  hospital_name    String        @db.VarChar(255)
+  hospital_address String        @db.VarChar(255)
+  hospital_number  String        @db.VarChar(255)
+  hospital_email   String        @unique @db.VarChar(255)
+  observation      Observation[]
+}
+
+model Medication {
+  medication_id      String        @id @db.VarChar(50)
+  medication_name    String        @db.VarChar(255)
+  medication_company String        @db.VarChar(255)
+  medication_level   String        @db.VarChar(255)
+  medication_remark  String
+  observation        Observation[]
+}
+
+model Nurse {
+  nurse_id        String        @id @db.VarChar(50)
+  nurse_firstname String        @db.VarChar(255)
+  nurse_lastname  String        @db.VarChar(255)
+  nurse_address1  String        @db.VarChar(255)
+  nurse_address2  String?       @db.VarChar(255)
+  nurse_number1   String?       @db.VarChar(20)
+  nurse_checkIn   DateTime?
+  nurse_checkOut  DateTime?
+  observation     Observation[]
+}
+
+model Observation {
+  observation_id     String       @id @db.VarChar(255)
+  observation_date   DateTime?
+  observation_time   DateTime?
+  observation_remark String
+  patient            Patient      @relation(fields: [patient_ssn], references: [patient_ssn])
+  patient_ssn        String       @db.VarChar(50)
+  practitioner       Practitioner @relation(fields: [practitioner_id], references: [practitioner_id])
+  practitioner_id    String       @db.VarChar(50)
+  nurse              Nurse        @relation(fields: [nurse_id], references: [nurse_id])
+  nurse_id           String       @db.VarChar(50)
+  medication         Medication   @relation(fields: [medication_id], references: [medication_id])
+  medication_id      String       @db.VarChar(50)
+  hospital           Hospital     @relation(fields: [hospital_id], references: [hospital_id])
+  hospital_id        String       @db.VarChar(50)
+}
