@@ -11,7 +11,7 @@ export const insertOrUpdatePatientData = async (data: PatientInfoContainer) => {
     observationData,
   } = data;
 
-  const result = await prisma.$transaction(async (trx) => {
+  await prisma.$transaction(async (trx) => {
     await trx.patient.createMany({
       data: [...patientData],
       skipDuplicates: true,

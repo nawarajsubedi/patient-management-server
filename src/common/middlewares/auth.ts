@@ -4,10 +4,16 @@ import { Request, Response, NextFunction } from "express";
 import { ACCESS_TOKEN_SECRET_KEY } from "@config/appConfig";
 import { AppError, HttpCode } from "@common/exceptions/appError";
 
+export interface User {
+  name?: string;
+  email: string;
+  password: string;
+}
+
 const ACCESS_TOKEN: string = ACCESS_TOKEN_SECRET_KEY;
 
 export const auth = (
-  req: Request & { user?: any },
+  req: Request & { user?: User },
   res: Response,
   next: NextFunction
 ) => {
@@ -21,7 +27,8 @@ export const auth = (
     token = token.split(" ")[1];
     jwt.verify(token, ACCESS_TOKEN, null, (err, decoded) => {
       if (!err) {
-        req.user = decoded as Record<string, any>;
+        req.user = decoded as User;
+        // req.user = decoded as Record<string, any>;
         next();
       } else if (err.message === "jwt expired") {
         const error = AppError.badRequest("Access Token expired.");

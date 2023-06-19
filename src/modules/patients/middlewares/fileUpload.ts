@@ -1,6 +1,5 @@
 import { Request } from "express";
 import multer, { FileFilterCallback, Multer, StorageEngine } from "multer";
-import { Express } from "express-serve-static-core";
 
 const storage: StorageEngine = multer.diskStorage({
   destination: (

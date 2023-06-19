@@ -51,7 +51,7 @@ export interface CSVDataRow {
   medication_remark: string;
 }
 
-export class PatientDTO {
+export interface PatientDto {
   patient_ssn: string;
   patient_firstname: string;
   patient_lastname: string;
@@ -71,7 +71,7 @@ export class PatientDTO {
   patient_occupation: string;
 }
 
-export class HospitalDTO {
+export interface HospitalDto {
   hospital_id: string;
   hospital_name: string;
   hospital_address: string;
@@ -79,7 +79,7 @@ export class HospitalDTO {
   hospital_email: string;
 }
 
-export class MedicationDTO {
+export interface MedicationDto {
   medication_id: string;
   medication_name: string;
   medication_company: string;
@@ -87,7 +87,7 @@ export class MedicationDTO {
   medication_remark: string;
 }
 
-export class NurseDto {
+export interface NurseDto {
   nurse_id: string;
   nurse_firstname: string;
   nurse_lastname: string;
@@ -98,7 +98,7 @@ export class NurseDto {
   nurse_checkOut?: Date;
 }
 
-export class ObservationDTO {
+export interface ObservationDto {
   observation_id: string;
   observation_date?: Date;
   observation_time?: Date;
@@ -110,7 +110,7 @@ export class ObservationDTO {
   nurse_id: string;
 }
 
-export class PractitionerDto {
+export interface PractitionerDto {
   practitioner_id: string;
   practitioner_firstname: string;
   practitioner_lastname: string;
@@ -123,10 +123,10 @@ export class PractitionerDto {
 }
 
 export interface PatientInfoContainer {
-  patientData: PatientDTO[];
-  hospitalData: HospitalDTO[];
-  medicationData: MedicationDTO[];
+  patientData: PatientDto[];
+  hospitalData: HospitalDto[];
+  medicationData: MedicationDto[];
   nurseData: NurseDto[];
-  observationData: ObservationDTO[];
+  observationData: ObservationDto[];
   practitionerData: PractitionerDto[];
 }

@@ -14,21 +14,3 @@ userRouter.post("/signup", validation, signup);
 userRouter.post("/signin", validation, signin);
 
 export default userRouter;
-
-// const multer = require("multer");
-// const upload = multer({ dest: "tmp/csv/" });
-
-// const csv = require("fast-csv");
-// router.get("/", async (req, res, next) => {
-//   // console.log(req.token);
-//   try {
-//     const data = await fs.readFile("patients.json", "utf8");
-//     const patientList = JSON.parse(data);
-//     res.json({ patients: patientList });
-//   } catch (error) {
-//     next(error);
-//   }
-// });
-
-// router.post("/upload-csv", upload.single("file"), async (req, res, next) => {
-//   console.log("upload api", req.file.path);

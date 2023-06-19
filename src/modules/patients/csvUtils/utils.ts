@@ -1,11 +1,11 @@
 import { parseTime } from "@/utils/date";
 import {
   CSVDataRow,
-  HospitalDTO,
-  MedicationDTO,
+  HospitalDto,
+  MedicationDto,
   NurseDto,
-  ObservationDTO,
-  PatientDTO,
+  ObservationDto,
+  PatientDto,
   PatientInfoContainer,
   PractitionerDto,
 } from "./interface";
@@ -14,12 +14,12 @@ import { validateEmailFormat } from "./emailValidator";
 
 export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
   let patientResult: PatientInfoContainer;
-  let patientDTO: PatientDTO;
+  let patientDTO: PatientDto;
   let practitionerDTO: PractitionerDto;
-  let hospitalDTO: HospitalDTO;
-  let medicationDTO: MedicationDTO;
+  let hospitalDTO: HospitalDto;
+  let medicationDTO: MedicationDto;
   let nurseDTO: NurseDto;
-  let observationDTO: ObservationDTO;
+  let observationDTO: ObservationDto;
 
   let currentSSN = "";
   let currentNurseId = "";
@@ -27,12 +27,12 @@ export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
   let currentMedicationId = "";
   let currentHospitalId = "";
 
-  let patientMap = new Map<string, PatientDTO>();
+  let patientMap = new Map<string, PatientDto>();
   let practitionerMap = new Map<string, PractitionerDto>();
-  let hospitalMap = new Map<string, HospitalDTO>();
-  let medicationMap = new Map<string, MedicationDTO>();
+  let hospitalMap = new Map<string, HospitalDto>();
+  let medicationMap = new Map<string, MedicationDto>();
   let nurseMap = new Map<string, NurseDto>();
-  let observationMap = new Map<string, ObservationDTO>();
+  let observationMap = new Map<string, ObservationDto>();
 
   for (let row of data) {
     const {
@@ -97,7 +97,7 @@ export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
   debugger;
 };
 
-const getPatientData = (row: CSVDataRow): PatientDTO => {
+const getPatientData = (row: CSVDataRow): PatientDto => {
   return {
     patient_ssn: row.patient_ssn,
     patient_firstname: row.patient_firstName,
@@ -133,7 +133,7 @@ const getObservationData = ({
   medication_id?: string;
   practitioner_id?: string;
   nurse_id?: string;
-}): ObservationDTO => {
+}): ObservationDto => {
   const observationTime = parseTime(row.observation_time, row.observation_date);
 
   const observationDTO = {
@@ -141,13 +141,11 @@ const getObservationData = ({
     observation_date: parseDate(row.observation_date),
     observation_time: observationTime,
     observation_remark: row.observation_remark,
-    patient_ssn: row.patient_ssn.length > 0 ? row.patient_ssn : patient_ssn,
-    hospital_id: row.hospital_id.length > 0 ? row.hospital_id : hospital_id,
-    medication_id:
-      row.medication_id.length > 0 ? row.medication_id : medication_id,
-    practitioner_id:
-      row.practitioner_id.length > 0 ? row.practitioner_id : practitioner_id,
-    nurse_id: row.nurse_id.length > 0 ? row.nurse_id : nurse_id,
+    patient_ssn: row.patient_ssn || patient_ssn,
+    hospital_id: row.hospital_id || hospital_id,
+    medication_id: row.medication_id || medication_id,
+    practitioner_id: row.practitioner_id || practitioner_id,
+    nurse_id: row.nurse_id || nurse_id,
   };
   return observationDTO;
 };
@@ -172,8 +170,6 @@ const getNurseData = (row: CSVDataRow): NurseDto => {
 
 const getPractitionerData = (row: CSVDataRow): PractitionerDto => {
   let practitionerDTO: PractitionerDto;
-  const nurseCheckIn = parseTime(row.nurse_checkIn, row.observation_date);
-  const nurseCheckOut = parseTime(row.nurse_checkOut, row.observation_date);
 
   const practitionerCheckIn = parseTime(
     row.practitioner_checkIn,
@@ -198,8 +194,8 @@ const getPractitionerData = (row: CSVDataRow): PractitionerDto => {
   return practitionerDTO;
 };
 
-const getMedicationData = (row: CSVDataRow): MedicationDTO => {
-  let medicationDTO: MedicationDTO;
+const getMedicationData = (row: CSVDataRow): MedicationDto => {
+  let medicationDTO: MedicationDto;
   medicationDTO = {
     medication_id: row.medication_id,
     medication_name: row.medication_name,
@@ -211,8 +207,8 @@ const getMedicationData = (row: CSVDataRow): MedicationDTO => {
   return medicationDTO;
 };
 
-const getHospitalData = (row: CSVDataRow): HospitalDTO => {
-  let hospitalDTO: HospitalDTO;
+const getHospitalData = (row: CSVDataRow): HospitalDto => {
+  let hospitalDTO: HospitalDto;
   const validEmail = validateEmailFormat(row.hospital_email);
   if (!validEmail) {
     //   logger.log("Invalid hospital Email");

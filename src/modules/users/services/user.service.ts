@@ -8,6 +8,9 @@ import {
 } from "@config/appConfig";
 
 import { AppError, HttpCode } from "@common/exceptions/appError";
+import { User } from "@/common/middlewares/auth";
+import prisma from "@/config/client";
+import { getUserByEmail } from "../repository/user.repository";
 
 /**
  * Service for handling user sign up
@@ -28,9 +31,35 @@ export const userSignup = async (payload: any) => {
  * @param payload Prisma.UserCreateInput
  * @returns {object}
  */
-export const userSignin = async (payload: any) => {
+export const userSignin = async (payload: User) => {
   const { email, password } = payload;
-  return null;
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new AppError({
+      httpCode: HttpCode.BAD_REQUEST,
+      message: `User with email: ${email} is not registered in our system. Please use registered email to login into the system.`,
+    });
+  }
+  const matchPassword = await bcrypt.compare(password, user.password);
+  if (!matchPassword) {
+    throw new AppError({
+      httpCode: HttpCode.BAD_REQUEST,
+      message: `Email or password did not match. Please check your credentials`,
+    });
+  }
+  const accessToken = jwt.sign(
+    { email: user.email, id: user.id },
+    ACCESS_TOKEN_SECRET_KEY,
+    { expiresIn: "30m" }
+  );
+  const refreshToken = jwt.sign(
+    { email: user.email, id: user.id },
+    REFRESH_TOKEN_SECRET_KEY,
+    { expiresIn: "7d" }
+  );
+  if (!accessToken || !refreshToken) {
+    throw AppError.badRequest(`Could not generate tokens.`);
+  }
 };
 
 /**
