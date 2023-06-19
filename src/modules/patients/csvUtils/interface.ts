@@ -83,7 +83,7 @@ export class MedicationDTO {
   medication_id: string;
   medication_name: string;
   medication_company: string;
-  medication_level: string;
+  medication_level: number;
   medication_remark: string;
 }
 
@@ -122,26 +122,11 @@ export class PractitionerDto {
   practitioner_checkout?: Date;
 }
 
-export interface PatientDataWrapper {
+export interface PatientInfoContainer {
   patientData: PatientDTO[];
   hospitalData: HospitalDTO[];
   medicationData: MedicationDTO[];
   nurseData: NurseDto[];
-  ObservationData: ObservationDTO[];
+  observationData: ObservationDTO[];
   practitionerData: PractitionerDto[];
 }
-
-// observation_id String  @id
-// observation_date DateTime?
-// observation_time DateTime?
-// observation_remark String
-// patient Patient @relation(fields: [patient_ssn], references: [patient_ssn])
-// patient_ssn String
-// practitioner Practitioner @relation(fields: [practitioner_id], references: [practitioner_id])
-// practitioner_id String
-// nurse Nurse @relation(fields: [nurse_id], references: [nurse_id])
-// nurse_id String
-// medication Medication @relation(fields: [medication_id], references: [medication_id])
-// medication_id String
-// hospital Hospital @relation(fields: [hospital_id], references: [hospital_id])
-// hospital_id String

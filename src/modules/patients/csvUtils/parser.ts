@@ -1,26 +1,11 @@
 import fs from "fs";
 import csv from "csv-parser";
-import { getAllData, getDtos } from "./utils";
+import { getAllData } from "./utils";
 import { CSVDataRow } from "./interface";
 
 export const parseCSVFile = async (filePath: string) => {
   const data = await readCSVData(filePath);
   const patientData = getAllData(data);
-  let tempData = [];
-
-  for (const row of data) {
-    const res = getDtos(row);
-    console.log("here data");
-
-    const { id, dtos } = res;
-    tempData.push({ id, dtos });
-  }
-
-  //   console.log(
-  //     "ssn",
-  //     data.map((row) => row.patient_ssn)
-  //   );
-
   return patientData;
 };
 

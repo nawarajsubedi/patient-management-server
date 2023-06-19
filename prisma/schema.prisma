@@ -62,9 +62,9 @@ model Hospital {
 
 model Medication {
   medication_id      String        @id @db.VarChar(50)
-  medication_name    String        @db.VarChar(255)
+  medication_name    String
   medication_company String        @db.VarChar(255)
-  medication_level   String        @db.VarChar(255)
+  medication_level   Float
   medication_remark  String
   observation        Observation[]
 }
@@ -90,8 +90,8 @@ model Observation {
   patient_ssn        String       @db.VarChar(50)
   practitioner       Practitioner @relation(fields: [practitioner_id], references: [practitioner_id])
   practitioner_id    String       @db.VarChar(50)
-  nurse              Nurse        @relation(fields: [nurse_id], references: [nurse_id])
-  nurse_id           String       @db.VarChar(50)
+  nurse              Nurse?       @relation(fields: [nurse_id], references: [nurse_id])
+  nurse_id           String?      @db.VarChar(50)
   medication         Medication   @relation(fields: [medication_id], references: [medication_id])
   medication_id      String       @db.VarChar(50)
   hospital           Hospital     @relation(fields: [hospital_id], references: [hospital_id])

@@ -1,5 +1,5 @@
 export function parseDate(dateString: string): Date | undefined {
-  const dateComponents = dateString.split('/');
+  const dateComponents = dateString.split("/");
   if (dateComponents.length !== 3) {
     return undefined;
   }
@@ -16,7 +16,7 @@ export function parseDate(dateString: string): Date | undefined {
 }
 
 export function parseDateDod(dateString: string): Date | undefined {
-  const dateComponents = dateString.split('/');
+  const dateComponents = dateString.split("/");
   if (dateComponents.length !== 3) {
     return undefined;
   }

@@ -1,13 +1,6 @@
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { Prisma } from "@prisma/client";
-
-import {
-  ACCESS_TOKEN_SECRET_KEY,
-  REFRESH_TOKEN_SECRET_KEY,
-} from "@config/appConfig";
-
 import { AppError, HttpCode } from "@common/exceptions/appError";
+import { insertOrUpdatePatientData } from "../repository/patient.repository";
+import { PatientInfoContainer } from "../csvUtils/interface";
 
 /**
  * Service for handling user sign up
@@ -15,4 +8,7 @@ import { AppError, HttpCode } from "@common/exceptions/appError";
  * @param payload Prisma.UserCreateInput
  * @returns {object}
  */
-export const parseAndUploadFile = async (payload: any) => {};
+export const updateCSVData = async (data: PatientInfoContainer) => {
+  const res = await insertOrUpdatePatientData(data);
+  return res;
+};
