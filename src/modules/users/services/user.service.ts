@@ -9,8 +9,11 @@ import {
 
 import { AppError, HttpCode } from "@common/exceptions/appError";
 import { User } from "@/common/middlewares/auth";
-import prisma from "@/config/client";
-import { getUserByEmail } from "../repository/user.repository";
+import { createUser, getUserByEmail } from "../repository/user.repository";
+import {
+  mapUserToUserResponse,
+  userLoginResponse,
+} from "../mappers/userResponseMapper";
 
 /**
  * Service for handling user sign up
@@ -18,11 +21,25 @@ import { getUserByEmail } from "../repository/user.repository";
  * @param payload Prisma.UserCreateInput
  * @returns {object}
  */
-export const userSignup = async (payload: any) => {
+export const userSignup = async (payload: User) => {
   const { email, password } = payload;
-  const hashedPassword = await bcrypt.hash(password, 10);
 
-  return null;
+  const existingUser = await getUserByEmail(email);
+  if (existingUser) {
+    throw new AppError({
+      httpCode: HttpCode.BAD_REQUEST,
+      message: `User already exists with email ${email}`,
+    });
+  }
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const userData = await createUser({
+    ...payload,
+    password: hashedPassword,
+  } as Prisma.UserCreateInput);
+  if (!userData) {
+    throw AppError.badRequest(`Error while creating user`);
+  }
+  return mapUserToUserResponse(userData);
 };
 
 /**
@@ -50,7 +67,7 @@ export const userSignin = async (payload: User) => {
   const accessToken = jwt.sign(
     { email: user.email, id: user.id },
     ACCESS_TOKEN_SECRET_KEY,
-    { expiresIn: "30m" }
+    { expiresIn: "300m" }
   );
   const refreshToken = jwt.sign(
     { email: user.email, id: user.id },
@@ -60,6 +77,7 @@ export const userSignin = async (payload: User) => {
   if (!accessToken || !refreshToken) {
     throw AppError.badRequest(`Could not generate tokens.`);
   }
+  return userLoginResponse(user, accessToken, refreshToken);
 };
 
 /**
@@ -67,5 +85,6 @@ export const userSignin = async (payload: User) => {
  * @returns {object}
  */
 export const getUsers = async () => {
-  return {};
+  const users = await getUsers();
+  return users;
 };

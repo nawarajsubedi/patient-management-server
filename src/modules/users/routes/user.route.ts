@@ -1,6 +1,9 @@
 import express from "express";
 import { auth } from "@common/middlewares/auth";
-import { validation } from "@modules/users/middlewares/validation";
+import {
+  signinValidation,
+  signupValidation,
+} from "@modules/users/middlewares/validation";
 import {
   getUser,
   signup,
@@ -10,7 +13,7 @@ import {
 const userRouter = express.Router();
 
 userRouter.get("/", auth, getUser);
-userRouter.post("/signup", validation, signup);
-userRouter.post("/signin", validation, signin);
+userRouter.post("/signup", signupValidation, signup);
+userRouter.post("/signin", signinValidation, signin);
 
 export default userRouter;
