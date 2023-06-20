@@ -67,7 +67,7 @@ export const userSignin = async (payload: User) => {
   const accessToken = jwt.sign(
     { email: user.email, id: user.id },
     ACCESS_TOKEN_SECRET_KEY,
-    { expiresIn: "300m" }
+    { expiresIn: "1d" }
   );
   const refreshToken = jwt.sign(
     { email: user.email, id: user.id },

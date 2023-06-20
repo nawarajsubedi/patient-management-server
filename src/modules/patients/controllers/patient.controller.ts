@@ -4,6 +4,7 @@ import { HttpCode } from "@common/exceptions/appError";
 
 import {
   fetchAllPatients,
+  fetchPatientDetails,
   updateCSVData,
 } from "@modules/patients/services/patient.service";
 import { parseCSVFile } from "../csvUtils/parser";
@@ -12,7 +13,7 @@ import { PaginationRequest } from "../dto/pagination.request";
 import { parseValueFromQuery } from "../utils/query-string";
 
 /**
- * Function to handle user signup
+ * Function to handle CSV file upload
  *
  * @param req Request
  * @param res Response
@@ -32,7 +33,7 @@ export const uploadCSVFile = async (req: Request, res: Response) => {
 };
 
 /**
- * Function to handle user signup
+ * Function to handle fetch all patients
  *
  * @param req Request
  * @param res Response
@@ -47,8 +48,21 @@ export const getAllPatients = async (req: Request, res: Response) => {
     size: +size,
     search: searchString,
   };
-  console.log(paginationRequest);
 
   const data = await fetchAllPatients(paginationRequest);
+  return res.status(HttpCode.CREATED).json(data);
+};
+
+/**
+ * Function to handle fetch all patients
+ *
+ * @param req Request
+ * @param res Response
+ * @returns {Promise<Response>}
+ */
+export const getPatientDetails = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  console.log("id", id);
+  const data = await fetchPatientDetails(id);
   return res.status(HttpCode.CREATED).json(data);
 };
