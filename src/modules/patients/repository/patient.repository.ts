@@ -2,6 +2,7 @@ import prisma from "@config/client";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { Prisma } from "@prisma/client";
 import { PaginationRequest } from "../dto/pagination.request";
+import { DashboardReportRequest } from "../dto/dashobard.request";
 
 export const insertOrUpdatePatientData = async (data: PatientInfoContainer) => {
   const {
@@ -114,4 +115,77 @@ export const fetchPatientDetailById = async (id: string) => {
     };
   });
   return { patient, observations: data };
+};
+
+type QueryResult = {
+  practitioner_name: string;
+  patient_count: number;
+};
+
+export const getTotalPatientsDetails = async (
+  request: DashboardReportRequest
+) => {
+  const minStartDate = new Date("2000-01-01");
+  const maxStartDate = new Date("2099-01-01");
+  const countResult = await prisma.$transaction([
+    prisma.patient.aggregate({
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.practitioner.aggregate({
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.nurse.aggregate({
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.observation.aggregate({
+      where: {
+        observation_date: {
+          gte: request.startDate ?? minStartDate,
+          lte: request.endDate ?? maxStartDate,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+  ]);
+
+  const [
+    {
+      _count: { _all: patientCount },
+    },
+    {
+      _count: { _all: practitionerCount },
+    },
+    {
+      _count: { _all: nurseCount },
+    },
+    {
+      _count: { _all: observationCount },
+    },
+  ] = countResult;
+  const result: QueryResult[] = await prisma.$queryRaw`
+  SELECT p.practitioner_firstname || ' ' || p.practitioner_lastname AS practitioner_name,
+    COUNT(DISTINCT o.patient_ssn) AS patient_count
+  FROM "Observation" o
+  INNER JOIN "Practitioner" p ON o.practitioner_id = p.practitioner_id
+  GROUP BY p.practitioner_id;
+`;
+
+  const practitionerNames = result.map((row) => row.practitioner_name);
+  const patientCounts = result.map((row) => row.patient_count);
+
+  console.log(practitionerNames);
+  console.log(patientCounts);
+
+  debugger;
+  // const totalPatients = patientRepository.getTotalPatientsDetails(request);
+  // const dashboardDetails = await getDashboardReport(request);
+  return null;
 };

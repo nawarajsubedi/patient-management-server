@@ -2,15 +2,12 @@ import { Request, Response } from "express";
 import { Result } from "@common/core/Result";
 import { HttpCode } from "@common/exceptions/appError";
 
-import {
-  fetchAllPatients,
-  fetchPatientDetails,
-  updateCSVData,
-} from "@modules/patients/services/patient.service";
+import * as patientService from "@modules/patients/services/patient.service";
 import { parseCSVFile } from "../csvUtils/parser";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { PaginationRequest } from "../dto/pagination.request";
 import { parseValueFromQuery } from "../utils/query-string";
+import { DashboardReportRequest } from "../dto/dashobard.request";
 
 /**
  * Function to handle CSV file upload
@@ -28,7 +25,7 @@ export const uploadCSVFile = async (req: Request, res: Response) => {
     console.error("error", error);
   }
 
-  const data = await updateCSVData(response);
+  const data = await patientService.updateCSVData(response);
   return res.status(HttpCode.CREATED).json(data);
 };
 
@@ -49,12 +46,12 @@ export const getAllPatients = async (req: Request, res: Response) => {
     search: searchString,
   };
 
-  const data = await fetchAllPatients(paginationRequest);
+  const data = await patientService.fetchAllPatients(paginationRequest);
   return res.status(HttpCode.CREATED).json(data);
 };
 
 /**
- * Function to handle fetch all patients
+ * Function to handle fetch patient details
  *
  * @param req Request
  * @param res Response
@@ -62,7 +59,27 @@ export const getAllPatients = async (req: Request, res: Response) => {
  */
 export const getPatientDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
-  console.log("id", id);
-  const data = await fetchPatientDetails(id);
+  const data = await patientService.fetchPatientDetails(id);
+  return res.status(HttpCode.CREATED).json(data);
+};
+
+/**
+ * Function to handle fetch dashboard report
+ *
+ * @param req Request
+ * @param res Response
+ * @returns {Promise<Response>}
+ */
+export const getDashboardReport = async (req: Request, res: Response) => {
+  const { startDate, endDate } = req.query;
+  const startDateStr = parseValueFromQuery(startDate);
+  const endDateStr = parseValueFromQuery(endDate);
+
+  const request: DashboardReportRequest = {
+    startDate: startDateStr,
+    endDate: endDateStr,
+  };
+
+  const data = await patientService.getDashboardReport(request);
   return res.status(HttpCode.CREATED).json(data);
 };

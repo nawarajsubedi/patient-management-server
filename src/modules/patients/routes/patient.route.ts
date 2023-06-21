@@ -4,6 +4,7 @@ import {
   uploadCSVFile,
   getAllPatients,
   getPatientDetails,
+  getDashboardReport,
 } from "@modules/patients/controllers/patient.controller";
 import fileUpload from "../middlewares/fileUpload";
 
@@ -17,6 +18,7 @@ patientRouter.post(
 );
 
 patientRouter.get("/", auth, getAllPatients);
+patientRouter.get("/dashboard", auth, getDashboardReport);
 patientRouter.get("/:id", auth, getPatientDetails);
 
 export default patientRouter;

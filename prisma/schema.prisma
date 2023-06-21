@@ -48,6 +48,7 @@ model Practitioner {
   practitioner_number2   String?       @db.VarChar(20)
   practitioner_checkin   DateTime?
   practitioner_checkout  DateTime?
+  createdAt              DateTime      @default(now())
   observation            Observation[]
 }
 
@@ -78,6 +79,7 @@ model Nurse {
   nurse_number1   String?       @db.VarChar(20)
   nurse_checkIn   DateTime?
   nurse_checkOut  DateTime?
+  createdAt       DateTime      @default(now())
   observation     Observation[]
 }
 
