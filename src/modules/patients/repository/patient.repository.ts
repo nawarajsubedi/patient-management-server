@@ -2,7 +2,16 @@ import prisma from "@config/client";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { Prisma } from "@prisma/client";
 import { PaginationRequest } from "../dto/pagination.request";
-import { DashboardReportRequest } from "../dto/dashobard.request";
+import { DashboardReportRequest } from "../dto/dashboard.request";
+import { BarChartData, DashboardReport } from "../dto/dashboard.response";
+
+const MIN_DATE = new Date("2000-01-01");
+const MAX_DATE = new Date("2099-01-01");
+type QueryResult = {
+  id: string;
+  fullname: string;
+  count: string;
+};
 
 export const insertOrUpdatePatientData = async (data: PatientInfoContainer) => {
   const {
@@ -117,16 +126,128 @@ export const fetchPatientDetailById = async (id: string) => {
   return { patient, observations: data };
 };
 
-type QueryResult = {
-  practitioner_name: string;
-  patient_count: number;
-};
-
 export const getTotalPatientsDetails = async (
   request: DashboardReportRequest
 ) => {
-  const minStartDate = new Date("2000-01-01");
-  const maxStartDate = new Date("2099-01-01");
+  const startDate = request.startDate ?? MIN_DATE;
+  const endDate = request.startDate ?? MAX_DATE;
+
+  const countResult = await getCountResult(startDate, endDate);
+  const practitionerByPatient = await getPatientByPractitioner(
+    startDate,
+    endDate
+  );
+
+  const nurseByPatient = await getPatientByNurse(startDate, endDate);
+
+  const medicationByPatient = await getPatientByMedication(startDate, endDate);
+
+  const patients = await getPatients(startDate, endDate);
+
+  const dashboardReport: DashboardReport = {
+    ...countResult,
+    nurseByPatient: nurseByPatient,
+    practitionerByPatient: practitionerByPatient,
+    medicationByPatient: medicationByPatient,
+    patients: patients,
+  };
+
+  debugger;
+  return dashboardReport;
+};
+async function getPatients(startDate: string | Date, endDate: string | Date) {
+  return await prisma.patient.findMany({
+    include: {
+      observation: {
+        where: {
+          observation_date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          observation_date: "desc",
+        },
+        include: {
+          medication: true,
+        },
+        take: 1,
+      },
+    },
+    take: 10,
+  });
+}
+
+const getPatientByMedication = async (
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<BarChartData> => {
+  const medicationResult: QueryResult[] = await prisma.$queryRaw`
+  SELECT m.medication_id AS id, m.medication_name AS fullname,
+    COUNT(DISTINCT o.patient_ssn) AS count
+  FROM "Observation" o
+  INNER JOIN "Medication" m ON m.medication_id = o.medication_id
+  WHERE o.observation_date BETWEEN ${startDate} AND ${endDate}
+  GROUP BY m.medication_id
+  ORDER BY "count" DESC
+  LIMIT 10;
+`;
+
+  return mapPatientData(medicationResult);
+};
+
+const getPatientByNurse = async (
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<BarChartData> => {
+  const nursesResult: QueryResult[] = await prisma.$queryRaw`
+  SELECT n.nurse_id AS id, n.nurse_firstname || ' ' || n.nurse_lastname AS fullname,
+    COUNT(DISTINCT o.patient_ssn) AS count
+  FROM "Observation" o
+  INNER JOIN "Nurse" n ON n.nurse_id = o.nurse_id
+  WHERE o.observation_date BETWEEN ${startDate} AND ${endDate}
+  GROUP BY n.nurse_id
+  ORDER BY "count" DESC
+  LIMIT 10;
+`;
+
+  return mapPatientData(nursesResult);
+};
+
+const getPatientByPractitioner = async (
+  startDate: string | Date,
+  endDate: string | Date
+): Promise<BarChartData> => {
+  const practitionerResult: QueryResult[] = await prisma.$queryRaw`
+  SELECT p.practitioner_id AS id, p.practitioner_firstname || ' ' || p.practitioner_lastname AS fullname,
+    COUNT(DISTINCT o.patient_ssn) AS count
+  FROM "Observation" o
+  INNER JOIN "Practitioner" p ON o.practitioner_id = p.practitioner_id
+  WHERE o.observation_date BETWEEN ${startDate} AND ${endDate}
+  GROUP BY p.practitioner_id
+  ORDER BY "count" DESC
+  LIMIT 10;
+`;
+
+  return mapPatientData(practitionerResult);
+};
+
+function mapPatientData(queryResult: QueryResult[]) {
+  const names = queryResult.map((row) => row.fullname);
+  const counts = queryResult.map((row) => parseInt(row.count));
+  const ids = queryResult.map((row) => row.id);
+  const barChartData: BarChartData = {
+    names: names,
+    ids: ids,
+    counts: counts,
+  };
+  return barChartData;
+}
+
+async function getCountResult(
+  startDate: string | Date,
+  endDate: string | Date
+) {
   const countResult = await prisma.$transaction([
     prisma.patient.aggregate({
       _count: {
@@ -146,8 +267,8 @@ export const getTotalPatientsDetails = async (
     prisma.observation.aggregate({
       where: {
         observation_date: {
-          gte: request.startDate ?? minStartDate,
-          lte: request.endDate ?? maxStartDate,
+          gte: startDate,
+          lte: endDate,
         },
       },
       _count: {
@@ -170,22 +291,5 @@ export const getTotalPatientsDetails = async (
       _count: { _all: observationCount },
     },
   ] = countResult;
-  const result: QueryResult[] = await prisma.$queryRaw`
-  SELECT p.practitioner_firstname || ' ' || p.practitioner_lastname AS practitioner_name,
-    COUNT(DISTINCT o.patient_ssn) AS patient_count
-  FROM "Observation" o
-  INNER JOIN "Practitioner" p ON o.practitioner_id = p.practitioner_id
-  GROUP BY p.practitioner_id;
-`;
-
-  const practitionerNames = result.map((row) => row.practitioner_name);
-  const patientCounts = result.map((row) => row.patient_count);
-
-  console.log(practitionerNames);
-  console.log(patientCounts);
-
-  debugger;
-  // const totalPatients = patientRepository.getTotalPatientsDetails(request);
-  // const dashboardDetails = await getDashboardReport(request);
-  return null;
-};
+  return { patientCount, practitionerCount, nurseCount, observationCount };
+}

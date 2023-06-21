@@ -2,7 +2,7 @@ import { AppError, HttpCode } from "@common/exceptions/appError";
 import * as patientRepository from "../repository/patient.repository";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { PaginationRequest } from "../dto/pagination.request";
-import { DashboardReportRequest } from "../dto/dashobard.request";
+import { DashboardReportRequest } from "../dto/dashboard.request";
 
 /**
  * Service for handling user sign up
@@ -45,8 +45,6 @@ export const fetchPatientDetails = async (id: string) => {
  * @returns {object}
  */
 export const getDashboardReport = async (request: DashboardReportRequest) => {
-  console.log("date", request);
-  const totalPatients = patientRepository.getTotalPatientsDetails(request);
-  // const dashboardDetails = await getDashboardReport(request);
-  return null;
+  const dashboardDetails = patientRepository.getTotalPatientsDetails(request);
+  return dashboardDetails;
 };
