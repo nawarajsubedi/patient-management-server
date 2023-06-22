@@ -2,7 +2,7 @@ import prisma from "@config/client";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { Prisma } from "@prisma/client";
 import { PaginationRequest } from "../dto/pagination.request";
-import { DashboardReportRequest } from "../dto/dashboard.request";
+import { DashboardReportRequest } from "../dto/dashobard.request";
 import { BarChartData, DashboardReport } from "../dto/dashboard.response";
 
 const MIN_DATE = new Date("2000-01-01");
@@ -69,6 +69,8 @@ export const getAllPatients = async (paginationRequest: PaginationRequest) => {
           observation_date: true,
           medication: true,
         },
+        orderBy: { observation_date: "asc" },
+        take: 1,
         // include: {
         //   medication: {
         //     select: {
@@ -142,7 +144,7 @@ export const getTotalPatientsDetails = async (
 
   const medicationByPatient = await getPatientByMedication(startDate, endDate);
 
-  const patients = await getPatients(startDate, endDate);
+  const patients = await getPatientsByObservationDate(startDate, endDate);
 
   const dashboardReport: DashboardReport = {
     ...countResult,
@@ -152,10 +154,12 @@ export const getTotalPatientsDetails = async (
     patients: patients,
   };
 
-  debugger;
   return dashboardReport;
 };
-async function getPatients(startDate: string | Date, endDate: string | Date) {
+async function getPatientsByObservationDate(
+  startDate: string | Date,
+  endDate: string | Date
+) {
   return await prisma.patient.findMany({
     include: {
       observation: {
@@ -189,7 +193,7 @@ const getPatientByMedication = async (
   INNER JOIN "Medication" m ON m.medication_id = o.medication_id
   WHERE o.observation_date BETWEEN ${startDate} AND ${endDate}
   GROUP BY m.medication_id
-  ORDER BY "count" DESC
+  ORDER BY "fullname"
   LIMIT 10;
 `;
 
@@ -207,7 +211,7 @@ const getPatientByNurse = async (
   INNER JOIN "Nurse" n ON n.nurse_id = o.nurse_id
   WHERE o.observation_date BETWEEN ${startDate} AND ${endDate}
   GROUP BY n.nurse_id
-  ORDER BY "count" DESC
+  ORDER BY "fullname"
   LIMIT 10;
 `;
 
@@ -225,7 +229,7 @@ const getPatientByPractitioner = async (
   INNER JOIN "Practitioner" p ON o.practitioner_id = p.practitioner_id
   WHERE o.observation_date BETWEEN ${startDate} AND ${endDate}
   GROUP BY p.practitioner_id
-  ORDER BY "count" DESC
+  ORDER BY "fullname"
   LIMIT 10;
 `;
 

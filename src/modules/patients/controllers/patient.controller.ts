@@ -7,7 +7,7 @@ import { parseCSVFile } from "../csvUtils/parser";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { PaginationRequest } from "../dto/pagination.request";
 import { parseValueFromQuery } from "../utils/query-string";
-import { DashboardReportRequest } from "../dto/dashboard.request";
+import { DashboardReportRequest } from "../dto/dashobard.request";
 
 /**
  * Function to handle CSV file upload

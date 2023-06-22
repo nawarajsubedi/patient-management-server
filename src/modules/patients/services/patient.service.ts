@@ -2,7 +2,7 @@ import { AppError, HttpCode } from "@common/exceptions/appError";
 import * as patientRepository from "../repository/patient.repository";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { PaginationRequest } from "../dto/pagination.request";
-import { DashboardReportRequest } from "../dto/dashboard.request";
+import { DashboardReportRequest } from "../dto/dashobard.request";
 
 /**
  * Service for handling user sign up
