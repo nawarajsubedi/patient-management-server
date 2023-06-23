@@ -6,7 +6,11 @@ export enum HttpCode {
   UNAUTHORIZED = 401,
   NOT_FOUND = 404,
   UPROCESSABLE_CONTENT = 422,
-  INTERNAL_SERVER_ERROR = 500
+  INTERNAL_SERVER_ERROR = 500,
+}
+export enum MessageEnums {
+  CSV_UPLOAD_ERROR = "Error occurred while uploading csv data",
+  NO_RECORD_FOUND = "No record found",
 }
 
 interface AppErrorArgs {
@@ -25,7 +29,7 @@ export class AppError extends Error {
     super(args.message);
     Object.setPrototypeOf(this, new.target.prototype);
 
-    this.name = args.name || 'Error';
+    this.name = args.name || "Error";
     this.httpCode = args.httpCode;
     if (args.isOperational !== undefined) {
       this.isOperational = args.isOperational;
@@ -43,5 +47,9 @@ export class AppError extends Error {
 
   public static unauthorized(message: string) {
     return new AppError({ httpCode: HttpCode.UNAUTHORIZED, message });
+  }
+
+  public static internalServerError(message: string) {
+    return new AppError({ httpCode: HttpCode.INTERNAL_SERVER_ERROR, message });
   }
 }

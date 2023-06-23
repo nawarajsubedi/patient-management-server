@@ -94,7 +94,6 @@ export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
     practitionerData: [...practitionerMap.values()],
   };
   return patientResult;
-  debugger;
 };
 
 const getPatientData = (row: CSVDataRow): PatientDto => {

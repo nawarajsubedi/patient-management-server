@@ -1,9 +1,9 @@
 import prisma from "@config/client";
 import _ from "lodash";
-import { PatientInfoContainer } from "../csvUtils/interface";
 import { Prisma } from "@prisma/client";
 import { PaginationRequest } from "../dto/pagination.request";
 import { DashboardReportRequest } from "../dto/dashobard.request";
+import { PaginationPatientResponse } from "../dto/pagination.patient.response";
 import { BarChartData, DashboardReport } from "../dto/dashboard.response";
 
 const MIN_DATE = new Date("2000-01-01");
@@ -12,49 +12,6 @@ type QueryResult = {
   id: string;
   fullname: string;
   count: string;
-};
-
-export const insertOrUpdatePatientData = async (data: PatientInfoContainer) => {
-  const {
-    patientData,
-    hospitalData,
-    nurseData,
-    practitionerData,
-    medicationData,
-    observationData,
-  } = data;
-
-  await prisma.$transaction(async (trx) => {
-    await trx.patient.createMany({
-      data: [...patientData],
-      skipDuplicates: true,
-    });
-
-    await trx.hospital.createMany({
-      data: [...hospitalData],
-      skipDuplicates: true,
-    });
-
-    await trx.nurse.createMany({
-      data: [...nurseData],
-      skipDuplicates: true,
-    });
-
-    await trx.practitioner.createMany({
-      data: [...practitionerData],
-      skipDuplicates: true,
-    });
-
-    await trx.medication.createMany({
-      data: [...medicationData],
-      skipDuplicates: true,
-    });
-
-    await trx.observation.createMany({
-      data: [...observationData],
-      skipDuplicates: true,
-    });
-  });
 };
 
 export const getAllPatients = async (paginationRequest: PaginationRequest) => {
@@ -81,7 +38,8 @@ export const getAllPatients = async (paginationRequest: PaginationRequest) => {
     prisma.patient.findMany(query),
     prisma.patient.count({ where: query.where }),
   ]);
-  return {
+
+  const response: PaginationPatientResponse = {
     pagination: {
       total: count,
       page: paginationRequest.page,
@@ -89,6 +47,7 @@ export const getAllPatients = async (paginationRequest: PaginationRequest) => {
     },
     data: patients,
   };
+  return response;
 };
 
 export const fetchPatientDetailById = async (id: string) => {

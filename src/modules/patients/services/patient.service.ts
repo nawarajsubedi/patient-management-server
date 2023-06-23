@@ -1,24 +1,11 @@
-import { AppError, HttpCode } from "@common/exceptions/appError";
 import * as patientRepository from "../repository/patient.repository";
-import { PatientInfoContainer } from "../csvUtils/interface";
 import { PaginationRequest } from "../dto/pagination.request";
 import { DashboardReportRequest } from "../dto/dashobard.request";
 
 /**
- * Service for handling user sign up
+ * Service for handling fetchAllPatients
  *
- * @param payload Prisma.UserCreateInput
- * @returns {object}
- */
-export const updateCSVData = async (data: PatientInfoContainer) => {
-  const res = await patientRepository.insertOrUpdatePatientData(data);
-  return res;
-};
-
-/**
- * Service for handling user sign up
- *
- * @param payload Prisma.UserCreateInput
+ * @param payload PaginationRequest
  * @returns {object}
  */
 export const fetchAllPatients = async (
@@ -28,9 +15,9 @@ export const fetchAllPatients = async (
 };
 
 /**
- * Service for handling user sign up
+ * Service for handling fetchPatientDetails
  *
- * @param payload Prisma.UserCreateInput
+ * @param payload id
  * @returns {object}
  */
 export const fetchPatientDetails = async (id: string) => {
@@ -41,10 +28,9 @@ export const fetchPatientDetails = async (id: string) => {
 /**
  * Service for dashboard report
  *
- * @param payload
+ * @param payload DashboardReportRequest
  * @returns {object}
  */
 export const getDashboardReport = async (request: DashboardReportRequest) => {
-  const dashboardDetails = patientRepository.getTotalPatientsDetails(request);
-  return dashboardDetails;
+  return await patientRepository.getTotalPatientsDetails(request);
 };

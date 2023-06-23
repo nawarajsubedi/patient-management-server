@@ -2,18 +2,21 @@ import { Request, Response } from "express";
 import {
   getDashboardReport,
   getPatientDetails,
+  getAllPatients,
 } from "@modules/patients/controllers/patient.controller";
 import * as patientService from "@modules/patients/services/patient.service";
-import { HttpCode } from "@/common/exceptions/appError";
+import { HttpCode, MessageEnums } from "@/common/exceptions/appError";
 import { DashboardReport } from "@/modules/patients/dto/dashboard.response";
-
-export interface CustomRequest extends Request {
-  query: Record<string, any>;
-}
+import { Patient } from "@prisma/client";
+import { PaginationRequest } from "@/modules/patients/dto/pagination.request";
+import { PATIENT_DATA, PATIENT_SSN } from "@tests/constant/patientData";
+import { PaginationPatientResponse } from "@/modules/patients/dto/pagination.patient.response";
+import { CustomRequest } from "@tests/common/interfaces/CustomRequest";
 
 jest.mock("@modules/patients/services/patient.service", () => ({
   getDashboardReport: jest.fn(),
   fetchPatientDetails: jest.fn(),
+  fetchAllPatients: jest.fn(),
 }));
 
 describe("getDashboardReport", () => {
@@ -63,34 +66,12 @@ describe("getDashboardReport", () => {
     expect(mockRes.status).toHaveBeenCalledWith(HttpCode.OK);
     expect(mockRes.json).toHaveBeenCalledWith(mockedData);
   });
-
-  // it("should handle errors and return a response with status 500", async () => {
-  //   const errorMessage = "Internal server error";
-  //   (patientService.getDashboardReport as jest.Mock).mockRejectedValue(
-  //     new Error(errorMessage)
-  //   );
-
-  //   try {
-  //     await getDashboardReport(mockReq as Request, mockRes as Response);
-  //   } catch (error) {
-  //     expect(error.message).toBe(errorMessage);
-  //   }
-
-  //   expect(patientService.getDashboardReport).toHaveBeenCalledWith({
-  //     startDate: "2023-01-01",
-  //     endDate: "2023-01-31",
-  //   });
-  //   expect(mockRes.status).toHaveBeenCalledWith(expect.any(Function));
-  //   expect(mockRes.status).toHaveBeenCalledWith(500);
-  //   expect(mockRes.json).toHaveBeenCalledWith({
-  //     error: { message: errorMessage },
-  //   });
-  // });
 });
 
 describe("getPatientDetails", () => {
+  const patient_ssn = "106-27-1722";
   const mockReq: Partial<Request> = {
-    params: { id: "123" },
+    params: { id: patient_ssn },
   };
 
   let mockRes: Partial<Response>;
@@ -103,30 +84,113 @@ describe("getPatientDetails", () => {
   });
 
   it("should fetch patient details and return a response with status 200", async () => {
-    const mockPatientDetails = { id: "123", name: "John Doe" };
+    const mockPatientDetails: Patient = {
+      patient_ssn,
+      patient_firstname: "Barry",
+      patient_lastname: "Gibberd",
+      patient_country: "Philippines",
+      patient_address1: "1 Old Shore Way",
+      patient_address2: "Room 1090",
+      patient_number1: "263-634-6572",
+      patient_number2: "827-584-6788",
+      patient_sex: "F",
+      patient_dob: new Date("1990-02-23T18:15:00.000Z"),
+      patient_dod: new Date("2026-05-01T18:15:00.000Z"),
+      patient_email: "bgibberd7@techcrunch.com",
+      patient_height: 5.1,
+      patient_weight: 112,
+      patient_bloodtype: "B-",
+      patient_education_background: "Bachelors",
+      patient_occupation: "Retired",
+      createdAt: new Date("2023-06-19T02:47:10.036Z"),
+    };
     (patientService.fetchPatientDetails as jest.Mock).mockResolvedValue(
       mockPatientDetails
     );
 
     await getPatientDetails(mockReq as Request, mockRes as Response);
 
-    expect(patientService.fetchPatientDetails).toHaveBeenCalledWith("123");
+    expect(patientService.fetchPatientDetails).toHaveBeenCalledWith(
+      patient_ssn
+    );
     expect(mockRes.status).toHaveBeenCalledWith(HttpCode.OK);
     expect(mockRes.json).toHaveBeenCalledWith(mockPatientDetails);
   });
+});
 
-  // it("should handle errors and return a response with status 500", async () => {
-  //   const errorMessage = "Internal server error";
-  //   (patientService.fetchPatientDetails as jest.Mock).mockRejectedValue(
-  //     new Error(errorMessage)
-  //   );
+describe("getAllPatients", () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
 
-  //   await getPatientDetails(mockReq as Request, mockRes as Response);
+  beforeEach(() => {
+    mockReq = {
+      query: {
+        page: "1",
+        size: "10",
+        search: PATIENT_SSN,
+      },
+    };
 
-  //   expect(patientService.fetchPatientDetails).toHaveBeenCalledWith("123");
-  //   expect(mockRes.status).toHaveBeenCalledWith(HttpCode.INTERNAL_SERVER_ERROR);
-  //   expect(mockRes.json).toHaveBeenCalledWith({
-  //     error: { message: errorMessage },
-  //   });
-  // });
+    mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+    };
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should fetch all patients and return a response with status 200", async () => {
+    const paginationRequest: PaginationRequest = {
+      page: 1,
+      size: 10,
+      search: PATIENT_SSN,
+    };
+
+    const mockPatientsData: Patient[] = [...PATIENT_DATA];
+
+    (patientService.fetchAllPatients as jest.Mock).mockResolvedValue(
+      mockPatientsData
+    );
+
+    await getAllPatients(mockReq as Request, mockRes as Response);
+
+    expect(patientService.fetchAllPatients).toHaveBeenCalledWith(
+      paginationRequest
+    );
+    expect(mockRes.status).toHaveBeenCalledWith(HttpCode.OK);
+    expect(mockRes.json).toHaveBeenCalledWith(mockPatientsData);
+  });
+
+  it("should not fetch patients and return a response with status 404", async () => {
+    const paginationRequest: PaginationRequest = {
+      page: 1,
+      size: 10,
+      search: PATIENT_SSN,
+    };
+
+    const mockPatientsData: PaginationPatientResponse = {
+      data: [],
+      pagination: {
+        page: 1,
+        size: 10,
+        total: 0,
+      },
+    };
+
+    (patientService.fetchAllPatients as jest.Mock).mockResolvedValue(
+      mockPatientsData
+    );
+
+    await getAllPatients(mockReq as Request, mockRes as Response);
+
+    expect(patientService.fetchAllPatients).toHaveBeenCalledWith(
+      paginationRequest
+    );
+    expect(mockRes.status).toHaveBeenCalledWith(HttpCode.NOT_FOUND);
+    expect(mockRes.json).toHaveBeenCalledWith({
+      message: MessageEnums.NO_RECORD_FOUND,
+    });
+  });
 });
