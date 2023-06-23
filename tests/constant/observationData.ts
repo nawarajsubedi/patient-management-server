@@ -1,7 +1,7 @@
-import { PatientInfoContainer } from "@/modules/patients/csvUtils/interface";
-import { Sex } from "@/modules/patients/csvUtils/enum";
+import { PatientInfoContainer } from "@/modules/ETL/csvUtils/interface";
+import { Sex } from "@/modules/ETL/csvUtils/enum";
 
-const observationData: PatientInfoContainer = {
+const PatientObservationData: PatientInfoContainer = {
   patientData: [
     {
       patient_ssn: "173-56-7224",
@@ -84,4 +84,4 @@ const observationData: PatientInfoContainer = {
   ],
 };
 
-export { observationData };
+export { PatientObservationData };

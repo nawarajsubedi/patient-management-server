@@ -1,4 +1,4 @@
-import { Sex } from "@/modules/patients/csvUtils/enum";
+import { Sex } from "@/modules/ETL/csvUtils/enum";
 import { Patient } from "@prisma/client";
 
 const PATIENT_SSN = "123-88-3607";
