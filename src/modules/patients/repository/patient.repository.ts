@@ -1,4 +1,5 @@
 import prisma from "@config/client";
+import _ from "lodash";
 import { PatientInfoContainer } from "../csvUtils/interface";
 import { Prisma } from "@prisma/client";
 import { PaginationRequest } from "../dto/pagination.request";
@@ -71,14 +72,6 @@ export const getAllPatients = async (paginationRequest: PaginationRequest) => {
         },
         orderBy: { observation_date: "asc" },
         take: 1,
-        // include: {
-        //   medication: {
-        //     select: {
-        //       medication_id: true,
-        //       medication_level: true,
-        //     },
-        //   },
-        // },
       },
     },
     take: paginationRequest.size,
@@ -109,11 +102,6 @@ export const fetchPatientDetailById = async (id: string) => {
       include: { medication: true },
     }),
   ]);
-  // const observationData = await prisma.observation.findMany({
-  //   where: { patient_ssn: id },
-  //   orderBy: { observation_date: "asc" },
-  //   include: { medication: true },
-  // });
 
   const data = observations.map((o) => {
     return {
@@ -178,7 +166,7 @@ async function getPatientsByObservationDate(
         take: 1,
       },
     },
-    take: 10,
+    take: 5,
   });
 }
 
@@ -281,19 +269,10 @@ async function getCountResult(
     }),
   ]);
 
-  const [
-    {
-      _count: { _all: patientCount },
-    },
-    {
-      _count: { _all: practitionerCount },
-    },
-    {
-      _count: { _all: nurseCount },
-    },
-    {
-      _count: { _all: observationCount },
-    },
-  ] = countResult;
+  const [patientCount, practitionerCount, nurseCount, observationCount] = _.map(
+    countResult,
+    "_count._all"
+  );
+
   return { patientCount, practitionerCount, nurseCount, observationCount };
 }
