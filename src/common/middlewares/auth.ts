@@ -27,7 +27,7 @@ export const auth = (
     token = token.split(" ")[1];
     jwt.verify(token, ACCESS_TOKEN, null, (err, decoded) => {
       if (!err) {
-        req.user = decoded as User;
+        req.user = decoded as unknown as User;
         // req.user = decoded as Record<string, any>;
         next();
       } else if (err.message === "jwt expired") {

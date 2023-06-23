@@ -3,13 +3,11 @@ import UserResponse from "../dto/userResponse.dto";
 import LoginResponse from "../dto/loginResponse.dto";
 
 export function mapUserToUserResponse(user: User): UserResponse {
-  const { id, name, email, createdAt, updatedAt } = user;
+  const { id, name, email } = user;
   return {
     id,
     name,
     email,
-    createdAt,
-    updatedAt,
   } as UserResponse;
 }
 

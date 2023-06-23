@@ -47,7 +47,7 @@ export const getAllPatients = async (req: Request, res: Response) => {
   };
 
   const data = await patientService.fetchAllPatients(paginationRequest);
-  return res.status(HttpCode.CREATED).json(data);
+  return res.status(HttpCode.OK).json(data);
 };
 
 /**
@@ -60,7 +60,7 @@ export const getAllPatients = async (req: Request, res: Response) => {
 export const getPatientDetails = async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = await patientService.fetchPatientDetails(id);
-  return res.status(HttpCode.CREATED).json(data);
+  return res.status(HttpCode.OK).json(data);
 };
 
 /**
@@ -81,5 +81,5 @@ export const getDashboardReport = async (req: Request, res: Response) => {
   };
 
   const data = await patientService.getDashboardReport(request);
-  return res.status(HttpCode.CREATED).json(data);
+  return res.status(HttpCode.OK).json(data);
 };
