@@ -22,8 +22,7 @@ export const fetchAllPatients = async (
  * @returns {object}
  */
 export const fetchPatientDetails = async (id: string) => {
-  const patientDetails = await patientRepository.fetchPatientDetailById(id);
-  return patientDetails;
+  return await patientRepository.fetchPatientDetailById(id);
 };
 
 /**
@@ -33,5 +32,5 @@ export const fetchPatientDetails = async (id: string) => {
  * @returns {object}
  */
 export const getDashboardReport = async (request: DashboardReportRequest) => {
-  return await patientRepository.getTotalPatientsDetails(request);
+  return await patientRepository.getDashboardReport(request);
 };

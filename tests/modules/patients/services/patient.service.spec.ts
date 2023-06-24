@@ -14,6 +14,8 @@ import {
 } from "@tests/constant/patientData";
 import { PaginationRequest } from "@/modules/patients/dto/pagination.request";
 import { PaginationPatientResponse } from "@/modules/patients/dto/pagination.patient.response";
+import { DashboardReportRequest } from "@/modules/patients/dto/dashobard.request";
+import { DashboardReport } from "@/modules/patients/dto/dashboard.response";
 
 afterEach(() => {
   sinon.restore();
@@ -102,7 +104,6 @@ describe("fetchPatientDetails", () => {
 
   test("it should not fetch the patient details by ID if the patient not found", async () => {
     // Arrange
-    // Arrange
     const patientId = PATIENT_SSN;
     const mockPatientDetails = null;
 
@@ -118,5 +119,57 @@ describe("fetchPatientDetails", () => {
     // Assertions
     expect(fetchPatientDetailByIdStub.calledOnceWith(patientId)).toBe(true);
     expect(result).toEqual(mockPatientDetails);
+  });
+});
+
+describe("getDashboardReport", () => {
+  const request: DashboardReportRequest = {
+    startDate: "2023-01-01",
+    endDate: "2023-01-31",
+  };
+
+  test("it should return the dashboard report data", async () => {
+    // Arrange
+    const mockedData: DashboardReport = {
+      nurseCount: 10,
+      observationCount: 10,
+      patientCount: 20,
+      practitionerCount: 5,
+      medicationByPatient: {
+        counts: [1, 2],
+        names: ["test med 1", "test med 2"],
+      },
+    } as DashboardReport;
+
+    const getTotalPatientsDetailsStub = sinon.stub(
+      patientRepository,
+      "getDashboardReport"
+    );
+    getTotalPatientsDetailsStub.withArgs(request).resolves(mockedData);
+
+    // Act
+    const result = await getDashboardReport(request);
+
+    // Assertions
+    expect(getTotalPatientsDetailsStub.calledOnceWith(request)).toBe(true);
+    expect(result).toEqual(mockedData);
+  });
+
+  test("it should not return the dashboard report data if data not available", async () => {
+    // Arrange
+    const mockedData: DashboardReport = null;
+
+    const getTotalPatientsDetailsStub = sinon.stub(
+      patientRepository,
+      "getDashboardReport"
+    );
+    getTotalPatientsDetailsStub.withArgs(request).resolves(mockedData);
+
+    // Act
+    const result = await getDashboardReport(request);
+
+    // Assertions
+    expect(getTotalPatientsDetailsStub.calledOnceWith(request)).toBe(true);
+    expect(result).toEqual(mockedData);
   });
 });

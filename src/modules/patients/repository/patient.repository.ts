@@ -9,6 +9,7 @@ import { PatientDetails } from "../dto/patient.details";
 
 const MIN_DATE = new Date("2000-01-01");
 const MAX_DATE = new Date("2099-01-01");
+
 type QueryResult = {
   id: string;
   fullname: string;
@@ -35,10 +36,11 @@ export const getAllPatients = async (paginationRequest: PaginationRequest) => {
     take: paginationRequest.size,
     skip: paginationRequest.page * paginationRequest.size,
   };
-  const [patients, count] = await prisma.$transaction([
-    prisma.patient.findMany(query),
-    prisma.patient.count({ where: query.where }),
-  ]);
+  const [patients, count] = await prisma.$transaction(async (trx) => {
+    const patients = await trx.patient.findMany(query);
+    const count = await trx.patient.count({ where: query.where });
+    return [patients, count];
+  });
 
   const response: PaginationPatientResponse = {
     pagination: {
@@ -52,16 +54,18 @@ export const getAllPatients = async (paginationRequest: PaginationRequest) => {
 };
 
 export const fetchPatientDetailById = async (id: string) => {
-  const [patient, observations] = await prisma.$transaction([
-    prisma.patient.findUnique({
+  const [patient, observations] = await prisma.$transaction(async (trx) => {
+    const patient = await trx.patient.findUnique({
       where: { patient_ssn: id },
-    }),
-    prisma.observation.findMany({
+    });
+
+    const observations = await trx.observation.findMany({
       where: { patient_ssn: id },
       orderBy: { observation_date: "asc" },
       include: { medication: true },
-    }),
-  ]);
+    });
+    return [patient, observations];
+  });
 
   const data = observations.map((o) => {
     return {
@@ -80,11 +84,9 @@ export const fetchPatientDetailById = async (id: string) => {
   return patientDetails;
 };
 
-export const getTotalPatientsDetails = async (
-  request: DashboardReportRequest
-) => {
+export const getDashboardReport = async (request: DashboardReportRequest) => {
   const startDate = request.startDate ?? MIN_DATE;
-  const endDate = request.startDate ?? MAX_DATE;
+  const endDate = request.endDate ?? MAX_DATE;
 
   const countResult = await getCountResult(startDate, endDate);
   const practitionerByPatient = await getPatientByPractitioner(
@@ -108,10 +110,11 @@ export const getTotalPatientsDetails = async (
 
   return dashboardReport;
 };
-async function getPatientsByObservationDate(
+
+export const getPatientsByObservationDate = async (
   startDate: string | Date,
   endDate: string | Date
-) {
+) => {
   return await prisma.patient.findMany({
     include: {
       observation: {
@@ -132,9 +135,9 @@ async function getPatientsByObservationDate(
     },
     take: 5,
   });
-}
+};
 
-const getPatientByMedication = async (
+export const getPatientByMedication = async (
   startDate: string | Date,
   endDate: string | Date
 ): Promise<BarChartData> => {
@@ -152,7 +155,7 @@ const getPatientByMedication = async (
   return mapPatientData(medicationResult);
 };
 
-const getPatientByNurse = async (
+export const getPatientByNurse = async (
   startDate: string | Date,
   endDate: string | Date
 ): Promise<BarChartData> => {
@@ -170,7 +173,7 @@ const getPatientByNurse = async (
   return mapPatientData(nursesResult);
 };
 
-const getPatientByPractitioner = async (
+export const getPatientByPractitioner = async (
   startDate: string | Date,
   endDate: string | Date
 ): Promise<BarChartData> => {
@@ -188,7 +191,7 @@ const getPatientByPractitioner = async (
   return mapPatientData(practitionerResult);
 };
 
-function mapPatientData(queryResult: QueryResult[]) {
+export const mapPatientData = (queryResult: QueryResult[]) => {
   const names = queryResult.map((row) => row.fullname);
   const counts = queryResult.map((row) => parseInt(row.count));
   const ids = queryResult.map((row) => row.id);
@@ -198,12 +201,12 @@ function mapPatientData(queryResult: QueryResult[]) {
     counts: counts,
   };
   return barChartData;
-}
+};
 
-async function getCountResult(
+export const getCountResult = async (
   startDate: string | Date,
   endDate: string | Date
-) {
+) => {
   const countResult = await prisma.$transaction([
     prisma.patient.aggregate({
       _count: {
@@ -239,4 +242,4 @@ async function getCountResult(
   );
 
   return { patientCount, practitionerCount, nurseCount, observationCount };
-}
+};
