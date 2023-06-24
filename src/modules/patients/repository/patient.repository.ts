@@ -5,6 +5,7 @@ import { PaginationRequest } from "../dto/pagination.request";
 import { DashboardReportRequest } from "../dto/dashobard.request";
 import { PaginationPatientResponse } from "../dto/pagination.patient.response";
 import { BarChartData, DashboardReport } from "../dto/dashboard.response";
+import { PatientDetails } from "../dto/patient.details";
 
 const MIN_DATE = new Date("2000-01-01");
 const MAX_DATE = new Date("2099-01-01");
@@ -72,7 +73,11 @@ export const fetchPatientDetailById = async (id: string) => {
       medicationLevel: o.medication.medication_level,
     };
   });
-  return { patient, observations: data };
+  const patientDetails: PatientDetails = {
+    patient,
+    observations: data,
+  };
+  return patientDetails;
 };
 
 export const getTotalPatientsDetails = async (

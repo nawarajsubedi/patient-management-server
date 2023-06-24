@@ -1,11 +1,12 @@
 import { Sex } from "@/modules/ETL/csvUtils/enum";
+import { PatientDetails } from "@/modules/patients/dto/patient.details";
 import { Patient } from "@prisma/client";
 
 const PATIENT_SSN = "123-88-3607";
 
 const PATIENT_DATA: Patient[] = [
   {
-    patient_ssn: "173-56-7224",
+    patient_ssn: PATIENT_SSN,
     patient_firstname: "Barry",
     patient_lastname: "Gibberd",
     patient_country: "Philippines",
@@ -26,4 +27,18 @@ const PATIENT_DATA: Patient[] = [
   },
 ];
 
-export { PATIENT_SSN, PATIENT_DATA };
+const PATIENT_DETAILS: PatientDetails = {
+  patient: { ...PATIENT_DATA[0] },
+  observations: [
+    {
+      observationId: "0aea9aa7-d790-41fc-80c5-653d96ce47ea",
+      patientSsn: PATIENT_SSN,
+      observationDate: new Date("2024-05-01T18:15:00.000Z"),
+      medicationName: "Red Cedar",
+      medicationId: "e9393534-50b5-4dad-9793-94b77822d172",
+      medicationLevel: 4,
+    },
+  ],
+};
+
+export { PATIENT_SSN, PATIENT_DATA, PATIENT_DETAILS };
