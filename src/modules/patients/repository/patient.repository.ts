@@ -330,7 +330,8 @@ export const getHighRiskPatients = async () => {
         COUNT(DISTINCT hospital_id) > ${MAX_HOSPITAL_VISITED}
     ) o
   JOIN
-    "Patient" p ON p.patient_ssn = o.patient_ssn;
+    "Patient" p ON p.patient_ssn = o.patient_ssn
+    LIMIT 10;
     `;
 
   return patientResult;
