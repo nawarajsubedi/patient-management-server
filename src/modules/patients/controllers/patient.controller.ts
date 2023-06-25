@@ -57,12 +57,26 @@ export const getDashboardReport = async (req: Request, res: Response) => {
   const { startDate, endDate } = req.query;
   const startDateStr = parseValueFromQuery(startDate);
   const endDateStr = parseValueFromQuery(endDate);
-
   const request: DashboardReportRequest = {
     startDate: startDateStr,
     endDate: endDateStr,
   };
 
   const data = await patientService.getDashboardReport(request);
+  return res.status(HttpCode.OK).json(data);
+};
+
+/**
+ * Function to handle fetch high risk patient
+ *
+ * @param req Request
+ * @param res Response
+ * @returns {Promise<Response>}
+ */
+export const getHighRiskPatientObservation = async (
+  req: Request,
+  res: Response
+) => {
+  const data = await patientService.getHighRiskPatientObservation();
   return res.status(HttpCode.OK).json(data);
 };

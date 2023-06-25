@@ -34,3 +34,13 @@ export const fetchPatientDetails = async (id: string) => {
 export const getDashboardReport = async (request: DashboardReportRequest) => {
   return await patientRepository.getDashboardReport(request);
 };
+
+/**
+ * Service for high risk patient
+ *
+ * @param payload
+ * @returns {object}
+ */
+export const getHighRiskPatientObservation = async () => {
+  return await patientRepository.getHighRiskPatientObservation();
+};

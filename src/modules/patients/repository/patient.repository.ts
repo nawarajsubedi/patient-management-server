@@ -1,11 +1,23 @@
 import prisma from "@config/client";
 import _ from "lodash";
-import { Prisma } from "@prisma/client";
+import { Observation, Prisma } from "@prisma/client";
 import { PaginationRequest } from "../dto/pagination.request";
 import { DashboardReportRequest } from "../dto/dashobard.request";
 import { PaginationPatientResponse } from "../dto/pagination.patient.response";
 import { BarChartData, DashboardReport } from "../dto/dashboard.response";
 import { PatientDetails } from "../dto/patient.details";
+import {
+  HighRiskCoveredPractitioner,
+  HighRiskObservationReport,
+  HighRiskPatient,
+} from "../dto/high-risk.report";
+
+import {
+  DURATIONS,
+  MAX_DOCTOR_VISITED,
+  MAX_HOSPITAL_VISITED,
+  MAX_OBSERVATIONS,
+} from "@modules/patients/constant";
 
 const MIN_DATE = new Date("2000-01-01");
 const MAX_DATE = new Date("2099-01-01");
@@ -242,4 +254,142 @@ export const getCountResult = async (
   );
 
   return { patientCount, practitionerCount, nurseCount, observationCount };
+};
+
+export const getHighRiskPatientObservation = async () => {
+  const [patients, observations, practitioners] = await Promise.all([
+    getHighRiskPatients(),
+    getHighRiskObservations(),
+    getHighRiskPractitioners(),
+  ]);
+
+  const result: HighRiskObservationReport = {
+    highRiskPatients: patients,
+    observations: observations,
+    highRiskCoveredPractitioners: practitioners,
+  };
+
+  return result;
+};
+
+export const getHighRiskPatients = async () => {
+  const patientResult: HighRiskPatient[] = await prisma.$queryRaw`
+    SELECT
+    p.patient_firstname,
+    p.patient_lastname,
+    p.patient_email,
+    p.patient_address1,
+    p.patient_number1,
+    o.*
+  FROM
+    (
+      SELECT
+        o.patient_ssn,
+        true AS is_criteria_observation,
+        false AS is_criteria_practitioner_visited,
+        false AS is_criteria_hospital_visited
+      FROM
+        "Observation" o
+      WHERE
+        observation_date > CURRENT_DATE - INTERVAL '10 months'
+      GROUP BY
+        patient_ssn
+      HAVING
+        COUNT(observation_id) > ${MAX_OBSERVATIONS}
+
+      UNION
+
+      SELECT
+        o.patient_ssn,
+        false AS is_criteria_observation,
+        true AS is_criteria_practitioner_visited,
+        false AS is_criteria_hospital_visited
+      FROM
+        "Observation" o
+      WHERE
+        observation_date > CURRENT_DATE - INTERVAL '${DURATIONS}'
+      GROUP BY
+        patient_ssn
+      HAVING
+        COUNT(DISTINCT practitioner_id) > ${MAX_DOCTOR_VISITED}
+
+      UNION
+
+      SELECT
+        o.patient_ssn,
+        false AS is_criteria_observation,
+        false AS is_criteria_practitioner_visited,
+        true AS is_criteria_hospital_visited
+      FROM
+        "Observation" o
+      WHERE
+        observation_date > CURRENT_DATE - INTERVAL '10 months'
+      GROUP BY
+        patient_ssn
+      HAVING
+        COUNT(DISTINCT hospital_id) > ${MAX_HOSPITAL_VISITED}
+    ) o
+  JOIN
+    "Patient" p ON p.patient_ssn = o.patient_ssn;
+    `;
+
+  return patientResult;
+};
+
+export const getHighRiskObservations = async () => {
+  const result: Observation[] = await prisma.$queryRaw`
+    SELECT
+    o.observation_id,
+    o.observation_date,
+    observation_time,
+    o.observation_remark
+  FROM
+    "Observation" o
+  LEFT JOIN
+    "Practitioner" p ON o.practitioner_id = p.practitioner_id
+  LEFT JOIN
+    "Nurse" n ON o.nurse_id = n.nurse_id
+  WHERE
+    (p.practitioner_checkout IS NOT NULL AND o.observation_time::time > p.practitioner_checkout::time)
+    OR (n."nurse_checkOut" IS NOT NULL AND o.observation_time::time > n."nurse_checkOut"::time);
+    `;
+
+  return result;
+};
+
+export const getHighRiskPractitioners = async () => {
+  const result: HighRiskCoveredPractitioner[] = await prisma.$queryRaw`
+    SELECT DISTINCT
+      p.practitioner_id AS id,
+      p.practitioner_firstname AS firstname,
+      p.practitioner_lastname AS lastname,
+      TRUE AS is_nurse 
+    FROM
+      "Observation" o
+    LEFT JOIN
+      "Practitioner" p ON o.practitioner_id = p.practitioner_id
+    WHERE
+      (
+        p.practitioner_checkout IS NOT NULL
+        AND o.observation_time::time > p.practitioner_checkout::time
+      )
+
+    UNION ALL
+
+    SELECT DISTINCT
+      n.nurse_id AS id,
+      n.nurse_firstname AS firstname,
+      n.nurse_lastname AS lastname,
+      FALSE AS is_nurse 
+    FROM
+      "Observation" o
+    LEFT JOIN
+      "Nurse" n ON o.nurse_id = n.nurse_id
+    WHERE
+      (
+        n."nurse_checkOut" IS NOT NULL
+        AND o.observation_time::time > n."nurse_checkOut"::time
+      );`;
+
+  return result;
 };
