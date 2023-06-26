@@ -1,6 +1,7 @@
 import { parseTime } from "@/utils/date";
 import {
   CSVDataRow,
+  CSVDataValidation,
   HospitalDto,
   MedicationDto,
   NurseDto,
@@ -10,7 +11,15 @@ import {
   PractitionerDto,
 } from "./interface";
 import { parseDate, parseDateDod } from "./parseDate";
-import { validateEmailFormat } from "./emailValidator";
+import { validateEmailFormat } from "../../../common/validators/emailValidator";
+import {
+  validateHospital,
+  validateMedication,
+  validateNurse,
+  validateObservation,
+  validatePatient,
+  validatePractitioner,
+} from "./dataFormatValidator";
 
 export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
   let patientResult: PatientInfoContainer;
@@ -34,6 +43,8 @@ export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
   let nurseMap = new Map<string, NurseDto>();
   let observationMap = new Map<string, ObservationDto>();
 
+  let validationErrors: CSVDataValidation[] = [];
+
   for (let row of data) {
     const {
       patient_ssn,
@@ -44,35 +55,44 @@ export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
       observation_id,
     } = row;
 
-    patientDTO = getPatientData(row);
-
     if (patient_ssn.length) {
       currentSSN = patient_ssn;
+      patientDTO = getPatientData(row);
       patientMap.set(patient_ssn, patientDTO);
+      validationErrors.push(...validatePatient(row));
     }
     if (nurse_id.length) {
       currentNurseId = nurse_id;
+      validationErrors.push(...validateNurse(row));
+
       nurseDTO = getNurseData(row);
       nurseMap.set(nurse_id, nurseDTO);
     }
 
     if (practitioner_id.length) {
       currentPractitionerId = practitioner_id;
+      validationErrors.push(...validatePractitioner(row));
+
       practitionerDTO = getPractitionerData(row);
       practitionerMap.set(nurse_id, practitionerDTO);
     }
 
     if (medication_id.length) {
       currentMedicationId = medication_id;
+      validationErrors.push(...validateMedication(row));
+
       medicationDTO = getMedicationData(row);
       medicationMap.set(medication_id, medicationDTO);
     }
 
     if (hospital_id.length) {
       currentHospitalId = hospital_id;
+      validationErrors.push(...validateHospital(row));
+
       hospitalDTO = getHospitalData(row);
       hospitalMap.set(hospital_id, hospitalDTO);
     }
+    validationErrors.push(...validateObservation(row));
 
     observationDTO = getObservationData({
       row,
@@ -92,6 +112,7 @@ export const getAllData = (data: CSVDataRow[]): PatientInfoContainer => {
     nurseData: [...nurseMap.values()],
     patientData: [...patientMap.values()],
     practitionerData: [...practitionerMap.values()],
+    validationErrors: validationErrors,
   };
   return patientResult;
 };

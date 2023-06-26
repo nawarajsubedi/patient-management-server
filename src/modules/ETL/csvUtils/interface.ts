@@ -129,4 +129,19 @@ export interface PatientInfoContainer {
   nurseData: NurseDto[];
   observationData: ObservationDto[];
   practitionerData: PractitionerDto[];
+  validationErrors: CSVDataValidation[];
+}
+
+export interface CSVDataValidation {
+  id: string;
+  fieldName: string;
+  dataValue: string;
+  errorRemark: ErrorRemark;
+}
+
+export enum ErrorRemark {
+  EMAIL_ERROR = "Invalid email",
+  DATE_ERROR = "Invalid date",
+  TIME_ERROR = "Invalid time",
+  NUMBER_ERROR = "Invalid number",
 }

@@ -7,7 +7,7 @@ const storage: StorageEngine = multer.diskStorage({
     file: Express.Multer.File,
     cb: (error: Error | null, destination: string) => void
   ) => {
-    cb(null, "temp_uploads/");
+    cb(null, "csv-upload/");
   },
   filename: (
     req: Request,

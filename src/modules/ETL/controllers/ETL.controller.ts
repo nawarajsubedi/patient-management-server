@@ -16,9 +16,18 @@ import logger from "@/utils/logger";
  */
 export const uploadCSVFile = async (req: Request, res: Response) => {
   const csvFilePath = req.file.path;
-  let response: PatientInfoContainer;
+
   try {
-    response = await parseCSVFile(csvFilePath);
+    const { validationErrors, ...rest } = await parseCSVFile(csvFilePath);
+
+    if (validationErrors.length) {
+      return res.status(HttpCode.BAD_REQUEST).json(validationErrors);
+    }
+
+    const data = await ETLService.updateObservationData(
+      rest as PatientInfoContainer
+    );
+    return res.status(HttpCode.CREATED).json(data);
   } catch (error) {
     logger.error(error);
     const customError = AppError.internalServerError(
@@ -28,7 +37,4 @@ export const uploadCSVFile = async (req: Request, res: Response) => {
       .status(customError.httpCode)
       .json(Result.fail(customError.message));
   }
-
-  const data = await ETLService.updateObservationData(response);
-  return res.status(HttpCode.CREATED).json(data);
 };

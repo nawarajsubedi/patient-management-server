@@ -38,7 +38,7 @@ yarn-error.log*
 /build
 
 # temp file
-/temp_uploads
+/csv-upload
 /logs
 
 # misc
