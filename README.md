@@ -41,7 +41,7 @@ Every time you make changes to `prisma/schema.prisma` make sure to run above com
 
 ## Postman
 
-You can find the postman collection of the available APIs [here]()
+You can find the postman collection of the available APIs [here](https://www.postman.com/joint-operations-pilot-53016632/workspace/patientmanagement/collection/27342787-2bb81c36-2852-4d14-bd0d-7e91a8087de1?action=share&creator=27342787)
 
 ## Challenges
 
